@@ -1,0 +1,32 @@
+# =====================
+# Logs et fichiers temporaires
+# =====================
+*.log
+*.tmp
+
+# =====================
+# Configurations locales
+# =====================
+config.lua
+.env
+server.cfg
+
+# =====================
+# Cache / dépendances
+# =====================
+node_modules/
+__pycache__/
+*.swp
+*.bak
+
+# =====================
+# Secrets et clés
+# =====================
+*.key
+*.pem
+
+# =====================
+# Fichiers système
+# =====================
+.DS_Store
+Thumbs.db

@@ -1,0 +1,47 @@
+dzk_jail/
+├─ client.lua       # Script client
+├─ server.lua       # Script serveur
+├─ html/            # Interface NUI
+│   ├─ index.html
+│   ├─ style.css
+│   └─ script.js
+
+
+----- CLIENT.LUA ------
+local jailCoords = vector3(1644.580200, 2527.608886, 45.556762)
+local unjailCoords = vector3(-262.971436, -901.200012, 32.296020)
+
+
+---client.lua texte sur le joueurs---
+
+function DrawText3D(x, y, z, text)
+    local onScreen, _x, _y = World3dToScreen2d(x, y, z)
+    local camCoords = GetGameplayCamCoords()
+    local distance = #(vector3(x, y, z) - camCoords)
+    local scale = (1 / distance) * 2
+    if scale > 0.5 then scale = 0.5 end
+
+    if onScreen then
+        SetTextScale(0.35 * scale, 0.35 * scale)
+        SetTextFont(4)
+        SetTextProportional(1)
+        SetTextCentre(true)
+        SetTextOutline()
+        SetTextEntry("STRING")
+        AddTextComponentString(text)
+        DrawText(_x, _y)
+    end
+end
+
+-------------------------------sounds-----------------------------------------
+
+SendNUIMessage({ action = "playSound", sound = "prison_alarm" })
+SendNUIMessage({ action = "playSound", sound = "prison_voice" })
+
+
+Si vous rencontrez des problèmes avec le script Jail, contactez-moi directement pour assistance.
+
+
+
+
+

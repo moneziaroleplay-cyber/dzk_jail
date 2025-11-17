@@ -1,0 +1,22 @@
+body {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+}
+
+#jail-notification {
+    position: absolute;
+    top: 20%;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(200, 0, 0, 0.7);
+    padding: 15px 25px;
+    border-radius: 8px;
+    color: white;
+    font-size: 20px;
+    text-align: center;
+}
+
+.hidden {
+    display: none;
+}
