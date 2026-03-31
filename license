@@ -1,33 +1,49 @@
-Dzk Jail - Licence d'utilisation
+============================================================
+                   DZK JAIL - LICENCE 2026
+============================================================
 
-Auteur : Dzk
-Version : 1.0.0
-Date : 2025
+Auteur      : Dzk
+Version     : 1.0.0
+Date        : Mars 2026
+Contact     : moneziaroleplay@gmail.com
 
-Description :
+DESCRIPTION :
 -------------
-Dzk Jail est un script RP immersif pour GTA V (FiveM) permettant de gérer un système de jail pour les joueurs.
+Dzk Jail est un système d'administration immersif pour FiveM (ESX) 
+permettant la gestion complète des sanctions de type "Jail" via 
+une interface NUI et un suivi automatique des durées.
 
-Licence :
+CONDITIONS D'UTILISATION :
+--------------------------
+
+1. USAGE ET MODIFICATION
+   - Vous êtes autorisé à utiliser ce script sur vos serveurs (publics ou privés).
+   - La modification du code source est autorisée UNIQUEMENT pour 
+     l'adaptation technique à votre serveur.
+
+2. PROPRIÉTÉ ET CRÉDITS
+   - Vous DEVEZ conserver la mention de l'auteur "Dzk" dans tous les 
+     fichiers (Client, Serveur, NUI) ainsi que dans le README.
+   - Le nom "Dzk Jail" ne doit pas être retiré des interfaces visibles.
+
+3. INTERDICTIONS STRICTES
+   - La revente, totale ou partielle, de ce script est FORMELLEMENT INTERDITE.
+   - La publication ou la redistribution gratuite sur des forums, Discord 
+     ou plateformes de partage sans l'accord écrit de Dzk est interdite.
+   - Toute copie pour création de "leaks" entraînera des poursuites 
+     auprès des plateformes d'hébergement.
+
+4. RESPONSABILITÉ
+   - L'auteur décline toute responsabilité en cas de mauvaise manipulation, 
+     conflit avec d'autres scripts ou perte de données sur votre base de données.
+   - Ce script est fourni "en l'état" et son utilisation se fait à vos risques.
+
+SUPPORT :
 ---------
-1. Usage Personnel
-   - Vous êtes autorisé à utiliser ce script pour vos serveurs personnels ou privés.
-   - La modification du script est autorisée uniquement pour un usage personnel.
+Pour toute question technique, bug ou demande d'amélioration, 
+veuillez contacter l'auteur à l'adresse suivante : 
+📩 [moneziaroleplay@gmail.com]
 
-2. Redistribution
-   - Vous n'êtes PAS autorisé à revendre, publier ou distribuer ce script à d'autres serveurs sans l'accord explicite de l'auteur.
-   - Toute distribution doit inclure ce fichier de licence intact.
-
-3. Crédit
-   - Vous devez conserver le nom de l'auteur "Dzk" dans tous les fichiers et messages d'information du script.
-
-4. Limitation de responsabilité
-   - L'auteur ne pourra être tenu responsable d'aucun dommage, perte de données ou problème sur votre serveur causé par l'utilisation de ce script.
-   - Utilisation à vos risques et périls.
-
-Contact :
---------
-Pour toute question, problème ou demande de support, contactez directement l'auteur : [moneziaroleplay@gmail.com]
-
-Merci de respecter cette licence.
-
+============================================================
+       MERCI DE RESPECTER LE TRAVAIL DES DÉVELOPPEURS.
+============================================================

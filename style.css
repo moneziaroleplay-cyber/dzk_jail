@@ -1,22 +1,76 @@
 body {
     margin: 0;
     padding: 0;
-    font-family: Arial, sans-serif;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    overflow: hidden;
 }
 
+.hidden { display: none !important; }
+
+/* Notification */
 #jail-notification {
     position: absolute;
-    top: 20%;
+    top: 10%;
     left: 50%;
     transform: translateX(-50%);
-    background-color: rgba(200, 0, 0, 0.7);
-    padding: 15px 25px;
-    border-radius: 8px;
+    background-color: rgba(200, 0, 0, 0.8);
+    padding: 15px 30px;
+    border-radius: 5px;
     color: white;
-    font-size: 20px;
-    text-align: center;
+    font-size: 22px;
+    border: 2px solid white;
 }
 
-.hidden {
-    display: none;
+/* Panel Admin */
+#admin-wrapper {
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#admin-panel {
+    width: 850px;
+    height: 550px;
+    background: #1a1a24;
+    border: 2px solid #3b82f6;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    color: white;
+    box-shadow: 0 0 30px rgba(0,0,0,0.5);
+}
+
+.header {
+    padding: 20px;
+    background: #14141c;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #3b82f6;
+}
+
+.close-btn { color: #ef4444; cursor: pointer; font-weight: bold; }
+
+.content { display: flex; flex: 1; overflow: hidden; }
+
+.left-side { width: 40%; padding: 25px; background: #1e1e2a; border-right: 1px solid #333; }
+.right-side { width: 60%; padding: 25px; background: #14141c; overflow-y: auto; }
+
+h3 { font-size: 14px; color: #3b82f6; margin-bottom: 20px; border-left: 3px solid #3b82f6; padding-left: 10px; }
+
+.input-group { margin-bottom: 15px; }
+label { display: block; font-size: 11px; color: #999; margin-bottom: 5px; }
+input, textarea {
+    width: 100%; background: #262635; border: 1px solid #3b82f6; padding: 10px; color: white; border-radius: 4px; box-sizing: border-box;
+}
+
+.btn-submit {
+    width: 100%; background: #3b82f6; color: white; border: none; padding: 12px; border-radius: 4px; font-weight: bold; cursor: pointer; margin-top: 10px;
+}
+
+.player-card {
+    background: #1e1e2a; padding: 12px; border-radius: 5px; border-left: 4px solid #ef4444; margin-bottom: 10px;
 }

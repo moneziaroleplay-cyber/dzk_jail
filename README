@@ -1,12 +1,22 @@
+# ⛓️ DZK Jail - Système de Panel Administration
+
+Système de Jail avancé pour serveurs FiveM (ESX) avec interface NUI, logs Discord complets et immersion sonore.
+
+---
+
+## 📂 Structure du Script
+```text
 dzk_jail/
-├─ client.lua       # Script client
-├─ server.lua       # Script serveur
+├─ fxmanifest.lua   # Configuration
+├─ client.lua       # Logique client & Affichage 3D
+├─ server.lua       # Logique serveur, Permissions & Webhooks
 ├─ html/            # Interface NUI
-│   ├─ index.html
-│   ├─ style.css
-│   └─ script.js
-
-
+│  ├─ index.html
+│  ├─ style.css
+│  └─ script.js
+└─ sounds/          # Audio (.mp3)
+   ├─ prison_alarm.mp3
+   └─ prison_voice.mp3
 ----- CLIENT.LUA ------
 local jailCoords = vector3(1644.580200, 2527.608886, 45.556762)
 local unjailCoords = vector3(-262.971436, -901.200012, 32.296020)

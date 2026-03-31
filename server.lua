@@ -1,650 +1,149 @@
-ESX = exports['es_extended']:getSharedObject() -- New ESX
-
--- Table pour suivre les joueurs en jail
+local ESX = exports['es_extended']:getSharedObject()
 local jailedPlayers = {}
+local recentUnjails = {} 
+local jailHistory = {} -- Garde tout jusqu'au reboot
 
--- Vérification Staff / Admin
+local GithubRepo = "moneziaroleplay-cyber/dzk_jail"
+
+Citizen.CreateThread(function()
+    Citizen.Wait(5000)
+    local resourceName = GetCurrentResourceName()
+    local localVersion = GetResourceMetadata(resourceName, 'version', 0) or "1.0.0"
+    
+    -- Le lien utilise 'main' car ta branche est 'Principaux'
+    local updateUrl = "https://raw.githubusercontent.com/"..GithubRepo.."/main/version.txt"
+
+    PerformHttpRequest(updateUrl, function(errorCode, resultData, resultHeaders)
+        if errorCode == 200 and resultData then
+            local latestVersion = resultData:gsub("%s+", "")
+            if latestVersion ~= localVersion then
+                print("^0[^4"..resourceName.."^0] ^1MISE À JOUR DISPONIBLE (v"..latestVersion..")^7")
+                print("^0[^1txAdmin^0] ^3Version locale: ^7" .. localVersion .. " ^1-> ^2Nouvelle version: ^7" .. latestVersion)
+            else
+                print("^0[^4"..resourceName.."^0] ^2Le script est à jour (v" .. localVersion .. ")^7")
+            end
+        end
+    end, "GET", "", "")
+end)
+
+-- Fonction centrale pour l'historique
+function LogToHistory(type, staffName, targetName, targetId, duration, reason)
+    table.insert(jailHistory, {
+        type = type, -- "JAIL", "UNJAIL" ou "FINI"
+        staffName = staffName,
+        targetName = targetName,
+        targetId = targetId,
+        reason = reason or "Aucune",
+        duration = duration or 0,
+        date = os.date("%d/%m/%Y à %H:%M:%S")
+    })
+end
+
+-- Vérification Staff
 local function IsPlayerStaff(source)
     local xPlayer = ESX.GetPlayerFromId(source)
     if xPlayer then
-        local group = xPlayer.getGroup()
-        local staffGrades = { "admin", "superadmin", "owner", "god" }
+        local group = string.lower(xPlayer.getGroup())
+        local staffGrades = { "admin", "superadmin", "owner", "mod" }
         for _, v in ipairs(staffGrades) do
-            if group == v then
-                return true
-            end
+            if group == v then return true end
         end
     end
     return false
 end
 
--- Commande /jail
+-- Refresh List
+local function RefreshJailList(source)
+    local listForNui = {}
+    local currentTime = os.time()
+    for k, v in pairs(jailedPlayers) do
+        v.status = "active"
+        table.insert(listForNui, v)
+    end
+    for k, v in pairs(recentUnjails) do
+        local diff = currentTime - v.releaseTime
+        if diff < 300 then 
+            v.status = "released"
+            v.secondsSince = diff
+            table.insert(listForNui, v)
+        else
+            recentUnjails[k] = nil 
+        end
+    end
+    TriggerClientEvent('Dzk:openJailMenu', source, listForNui)
+end
+
 RegisterCommand('jail', function(source, args)
     if not IsPlayerStaff(source) then return end
+    RefreshJailList(source)
+end, false)
 
-    local targetId = tonumber(args[1])
-    local duration = tonumber(args[2])
-    if not targetId or not duration then return end
-    if jailedPlayers[targetId] then return end
+-- ACTION : JAIL
+RegisterServerEvent('Dzk:processJail')
+AddEventHandler('Dzk:processJail', function(targetId, duration, reason)
+    local _source = source
+    targetId = tonumber(targetId)
+    duration = tonumber(duration)
+    if not targetId or not duration or not reason then return end
+    
+    local xTarget = ESX.GetPlayerFromId(targetId)
+    if xTarget then
+        local targetName = GetPlayerName(targetId)
+        local staffName = GetPlayerName(_source)
 
-    jailedPlayers[targetId] = true
-    TriggerClientEvent('Dzk:jailPlayer', targetId, duration)
-
-    -- Webhook Jail
-    local webhook = "https://discordapp.com/api/webhooks/1152697141094010890/EAi033KAQXzCJ7zTl0dKZkOPovJzLBpHG3SgGRSQC4CVJDYq9EUBZ234KQ7nEsB0-sFl"
-    local playerName = GetPlayerName(targetId)
-    local staffName = GetPlayerName(source)
-
-    local staffIdentifiers = GetPlayerIdentifiers(source)
-    local staffSteam, staffDiscord = "Non disponible", "Non disponible"
-    for _, id in ipairs(staffIdentifiers) do
-        if id:sub(1,6) == "steam:" then staffSteam = id
-        elseif id:sub(1,8) == "discord:" then staffDiscord = "<@" .. id:sub(9) .. ">" end
-    end
-
-    local playerIdentifiers = GetPlayerIdentifiers(targetId)
-    local playerDiscord = "Non disponible"
-    for _, id in ipairs(playerIdentifiers) do
-        if id:sub(1,8) == "discord:" then playerDiscord = "<@" .. id:sub(9) .. ">" end
-    end
-
-    local date = os.date("%d/%m/%Y %H:%M:%S")
-    local embed = {{
-        ["title"] = "🚨 Jail effectué",
-        ["color"] = 15158332,
-        ["fields"] = {
-            { ["name"] = "👮 Staff", ["value"] = staffName .. " (ID: " .. source .. " / Discord: " .. staffDiscord .. ")", ["inline"] = false },
-            { ["name"] = "🎯 Joueur sanctionné", ["value"] = playerName .. " (ID: " .. targetId .. " / Discord: " .. playerDiscord .. ")", ["inline"] = false },
-            { ["name"] = "⚠️ Action", ["value"] = "Jail • " .. duration .. " minute(s)", ["inline"] = false },
-            { ["name"] = "🆔 Identifiant Staff", ["value"] = staffSteam, ["inline"] = false },
-            { ["name"] = "📅 Date / Heure", ["value"] = date, ["inline"] = false }
+        jailedPlayers[targetId] = {
+            id = targetId,
+            name = targetName,
+            time = duration,
+            reason = reason,
+            staffName = staffName
         }
-    }}
-    PerformHttpRequest(webhook, function(err) end, 'POST', json.encode({ username = "server", embeds = embed }), { ['Content-Type'] = 'application/json' })
 
-    -- Auto Unjail
-    SetTimeout(duration * 60000, function()
-        if jailedPlayers[targetId] then
-            jailedPlayers[targetId] = nil
-            TriggerClientEvent('Dzk:unjailPlayer', targetId)
-        end
-    end)
-end, true)
+        -- LOG : JAIL EFFECTUÉ
+        LogToHistory("JAIL", staffName, targetName, targetId, duration, reason)
 
--- Commande /unjail
-RegisterCommand('unjail', function(source, args)
-    if not IsPlayerStaff(source) then return end
+        TriggerClientEvent('Dzk:jailPlayer', targetId, duration, reason)
 
-    local targetId = tonumber(args[1])
-    if not targetId then return end
-
-    if jailedPlayers[targetId] then
-        jailedPlayers[targetId] = nil
-        TriggerClientEvent('Dzk:unjailPlayer', targetId)
-        TriggerEvent('Dzk:unjailLog', targetId, source)
+        -- Fin auto du jail
+        SetTimeout(duration * 60000, function()
+            if jailedPlayers[targetId] then
+                -- LOG : FIN DE TEMPS
+                LogToHistory("FINI", "Système", targetName, targetId, duration, "Temps écoulé")
+                
+                recentUnjails[targetId] = jailedPlayers[targetId]
+                recentUnjails[targetId].releaseTime = os.time()
+                jailedPlayers[targetId] = nil
+                TriggerClientEvent('Dzk:unjailPlayer', targetId)
+            end
+        end)
     end
-end, true)
-
--- Webhook Unjail
-local unjailWebhook = "https://discordapp.com/api/webhooks/1439983051781443728/x4DS0GXUyAaVwHMxEb0D5WnGBJUK6oGKnGmceVMJ3MFJnwR7oEe2IbWIVrycHOE908sQ"
-
-RegisterNetEvent('Dzk:unjailLog')
-AddEventHandler('Dzk:unjailLog', function(targetId, staffId)
-    local playerName = GetPlayerName(targetId)
-    local staffName = GetPlayerName(staffId)
-
-    local staffIdentifiers = GetPlayerIdentifiers(staffId)
-    local staffSteam, staffDiscord = "Non disponible", "Non disponible"
-    for _, id in ipairs(staffIdentifiers) do
-        if id:sub(1,6) == "steam:" then staffSteam = id
-        elseif id:sub(1,8) == "discord:" then staffDiscord = "<@" .. id:sub(9) .. ">" end
-    end
-
-    local playerIdentifiers = GetPlayerIdentifiers(targetId)
-    local playerDiscord = "Non disponible"
-    for _, id in ipairs(playerIdentifiers) do
-        if id:sub(1,8) == "discord:" then playerDiscord = "<@" .. id:sub(9) .. ">" end
-    end
-
-    local date = os.date("%d/%m/%Y %H:%M:%S")
-    local embed = {{
-        ["title"] = "✅ Jail levé (Unjail)",
-        ["color"] = 3066993,
-        ["fields"] = {
-            { ["name"] = "👮 Staff", ["value"] = staffName .. " (ID: " .. staffId .. " / Discord: " .. staffDiscord .. ")", ["inline"] = false },
-            { ["name"] = "🎯 Joueur libéré", ["value"] = playerName .. " (ID: " .. targetId .. " / Discord: " .. playerDiscord .. ")", ["inline"] = false },
-            { ["name"] = "🆔 Identifiant Staff", ["value"] = staffSteam, ["inline"] = false },
-            { ["name"] = "📅 Date / Heure", ["value"] = date, ["inline"] = false }
-        }
-    }}
-    PerformHttpRequest(unjailWebhook, function(err) end, 'POST', json.encode({ username = "Server", embeds = embed }), { ['Content-Type'] = 'application/json' })
 end)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-print("^2[dzk_jail] Script chargé et opérationnel !^0")
+-- ACTION : LIBÉRER (Bouton Staff)
+RegisterServerEvent('Dzk:requestUnjail')
+AddEventHandler('Dzk:requestUnjail', function(data)
+    local _source = source
+    if not IsPlayerStaff(_source) then return end
+    local targetId = tonumber(data.id)
+    
+    if targetId and jailedPlayers[targetId] then
+        local targetName = jailedPlayers[targetId].name
+        local staffName = GetPlayerName(_source)
+
+        -- LOG : LIBÉRATION PAR STAFF
+        LogToHistory("UNJAIL", staffName, targetName, targetId, 0, "Libéré manuellement")
+
+        recentUnjails[targetId] = jailedPlayers[targetId]
+        recentUnjails[targetId].releaseTime = os.time()
+        jailedPlayers[targetId] = nil
+        TriggerClientEvent('Dzk:unjailPlayer', targetId)
+        RefreshJailList(_source)
+    end
+end)
+
+-- Envoi Historique
+RegisterServerEvent('Dzk:requestHistory')
+AddEventHandler('Dzk:requestHistory', function()
+    local _source = source
+    TriggerClientEvent('Dzk:sendHistory', _source, jailHistory)
+end)
