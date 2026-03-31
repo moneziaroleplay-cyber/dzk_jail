@@ -1,1 +1,12 @@
 1.1.0
+⚠️ ATTENTION - MISE À JOUR IMPORTANTE v1.1.0
+
+Avant d'installer cette nouvelle version, pensez à bien sauvegarder vos coordonnées (positions de jail, points de sortie, etc.) qui se trouvent dans votre ancien fichier 
+
+Une fois les nouveaux fichiers installés, n'oubliez pas de reporter vos coordonnées dans la nouvelle version pour que votre serveur fonctionne correctement.
+
+Nouveautés :
+
+Système d'historique complet (Jail / Unjail / Fin auto).
+
+Détection automatique des mises à jour via txAdmin.
