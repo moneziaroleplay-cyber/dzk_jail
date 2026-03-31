@@ -3,7 +3,7 @@ game 'gta5'
 
 author 'Dzk'
 description 'Système de jail RP immersif'
-version '1.0.0'
+version '1.1.0'
 
 
 
